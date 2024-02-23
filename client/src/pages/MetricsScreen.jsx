@@ -4,6 +4,8 @@ import Chart from 'chart.js/auto';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MimicMetrics } from '../api-mimic.js';
 import RightArrow from '../assets/right-arrow.png';
+import { formattedDate, getFomattedTime } from '../helpers/format.js';
+import Select from '../components/timeSelect/Select.jsx';
 
 const MetricsScreen = () => {
   const location = useLocation();
@@ -72,33 +74,17 @@ const MetricsScreen = () => {
     return date.toLocaleDateString();
   };
 
-  const getFomattedTime = (time) => {
-    let date = new Date(time);
-    let hr =
-      date.getHours() < 10 ? '0' + date.getHours().toString() : date.getHours();
-    let min =
-      date.getMinutes() < 10
-        ? '0' + date.getMinutes().toString()
-        : date.getMinutes();
-    let formattedTime = `${hr}` + ':' + `${min}`;
-    return formattedTime;
-  };
-
   useEffect(() => {
     // Store the references to the created charts
     const color = ['#00FF00', '#0000FF', '#FF0000'];
     const datasets = chartData.map((line, j) => {
       console.log(chartData);
       let dataset = [];
-      // let minTime = Date.now(),
-      //   maxTime = 0;
       for (let i = 0; i < line.graphLines.length; i++) {
         const graphLine = line.graphLines[i];
         dataset.push({
           label: graphLine.name,
           data: graphLine.values.map((entry) => {
-            // minTime = Math.min(minTime, entry.timestamp);
-            // maxTime = Math.max(maxTime, entry.timestamp);
             return {
               x: entry.timestamp,
               y: entry.value,
@@ -113,15 +99,7 @@ const MetricsScreen = () => {
           pointRadius: 0,
         });
       }
-      // const ar = Array(11)
-      //   .fill(0)
-      //   .map((_, i) => minTime + (i * (maxTime - minTime)) / 10);
-      // console.log(ar, getFomattedTime(minTime), getFomattedTime(maxTime));
-      // const interval = (maxTime - minTime) / 10;
       return {
-        // labels: ar
-        //   .fill(0)
-        //   .map((_, i) => getFomattedTime(minTime + i * interval)),
         datasets: dataset,
         name: line.name,
       };
@@ -166,19 +144,7 @@ const MetricsScreen = () => {
 
       {/* Time Range Selector */}
       <div className="rounded-b-lg border-[1px] border-[#a5c1e6] font-default text-[12px] text-[#3E5680] font-[500]">
-        <div className="absolute right-6 top-6">
-          <select
-            name="timeRange"
-            id="timeRange"
-            onChange={(e) => handleTimeRangeChange(`${e.target.value}`)}
-          >
-            <option value="last-5-mins">Last 5 mins</option>
-            <option value="last-10-mins">Last 10 mins</option>
-            <option value="last-15-mins">Last 15 mins</option>
-            <option value="last-30-mins">Last 30 mins</option>
-            <option value="last-1-hour">Last 1 hour</option>
-          </select>
-        </div>
+        <Select onChange={handleTimeRangeChange} />
         <div className="grid md:grid-cols-2 grid-cols-1 justify-between items-center p-4">
           {chartInstances &&
             chartInstances.map((chart, i) => (
@@ -220,8 +186,8 @@ const MetricsScreen = () => {
                           position: 'right',
                         },
                       },
-                      onClick: (event, elements,c,d) => {
-                        console.log(event, elements,c,d);
+                      onClick: (event, elements) => {
+                        console.log(event, elements);
                         const clickedDatasetIndex = elements[0].datasetIndex;
                         const clickedPointIndex = elements[0].index;
                         const clickedValue =

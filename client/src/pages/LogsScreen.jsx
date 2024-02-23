@@ -5,6 +5,12 @@ import { MimicLogs } from '../api-mimic.js';
 import Log from '../components/log/Log.jsx';
 import { Line } from 'react-chartjs-2';
 import RightArrow from '../assets/right-arrow.png';
+import {
+  getFomattedTime,
+  formattedDate,
+  getTimeRangeInMilliseconds,
+} from '../helpers/format.js';
+import Select from '../components/timeSelect/Select.jsx';
 
 const LogsScreen = () => {
   const location = useLocation();
@@ -54,38 +60,6 @@ const LogsScreen = () => {
   }, [logs]);
 
   // Helper function to convert time range string to milliseconds
-  const getTimeRangeInMilliseconds = (range) => {
-    switch (range) {
-      case 'last-5-mins':
-        return 5 * 60 * 1000;
-      case 'last-10-mins':
-        return 10 * 60 * 1000;
-      case 'last-15-mins':
-        return 15 * 60 * 1000;
-      case 'last-30-mins':
-        return 30 * 60 * 1000;
-      case 'last-1-hour':
-        return 60 * 60 * 1000;
-      default:
-        return 5 * 60 * 1000; // Default to 1 hour if an invalid range
-    }
-  };
-
-  const formattedDate = (time) => {
-    let date = new Date(time);
-    return date.toLocaleDateString();
-  };
-  const getFomattedTime = (time) => {
-    let date = new Date(time);
-    let hr =
-      date.getHours() < 10 ? '0' + date.getHours().toString() : date.getHours();
-    let min =
-      date.getMinutes() < 10
-        ? '0' + date.getMinutes().toString()
-        : date.getMinutes();
-    let formattedTime = `${hr}` + ':' + `${min}`;
-    return formattedTime;
-  };
 
   const handleTimeRangeChange = (newTimeRange) => {
     setTimeRange(newTimeRange);
@@ -124,19 +98,7 @@ const LogsScreen = () => {
         </div>
       </div>
       <div className="flex flex-col h-screen bg-[#090F17] mx-6 mt-2 mb-12 rounded-lg px-4 pt-10 ">
-        <div className="absolute right-6 top-6 text-[#3E5680] font-[500]">
-          <select
-            name="timeRange"
-            id="timeRange"
-            onChange={(e) => handleTimeRangeChange(`${e.target.value}`)}
-          >
-            <option value="last-5-mins">Last 5 mins</option>
-            <option value="last-10-mins">Last 10 mins</option>
-            <option value="last-15-mins">Last 15 mins</option>
-            <option value="last-30-mins">Last 30 mins</option>
-            <option value="last-1-hour">Last 1 hour</option>
-          </select>
-        </div>
+        <Select onChange={handleTimeRangeChange} />
         <div className="flex-1 overflow-auto mb-4" ref={containerRef}>
           {logs.map((log, index) => (
             <Log
