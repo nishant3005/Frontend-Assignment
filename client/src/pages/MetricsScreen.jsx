@@ -18,6 +18,11 @@ const MetricsScreen = () => {
   // State to store chart instances
   const [chartInstances, setChartInstances] = useState([]);
 
+  const [selectedRange, setSelectedRange] = useState({
+    start: null,
+    end: null,
+  });
+
   // Fetch and update chart data based on time range
   useEffect(() => {
     // Fetch data based on timeRange using MimicMetrics
@@ -62,44 +67,11 @@ const MetricsScreen = () => {
     }
   };
 
-  useEffect(() => {
-    // Store the references to the created charts
-    const color = ['#00FF00', '#0000FF', '#FF0000'];
-    const datasets = chartData.map((line, j) => {
-      console.log(chartData);
-      let dataset = [];
-      for (let i = 0; i < line.graphLines.length; i++) {
-        const graphLine = line.graphLines[i];
-        dataset.push({
-          label: graphLine.name,
-          data: graphLine.values.map((entry) => ({
-            x: entry.timestamp,
-            y: entry.value,
-          })),
-          fill: j === 3 ? true : false,
-          borderColor: j == 3 ? color[i + 1] : color[i],
-          borderCapStyle: 'round',
-          tension: 0.1,
-          backgroundColor: 'rgba(0,0,255,0.2)',
-          borderWidth: 2,
-          pointRadius: 0,
-        });
-      }
-      return {
-        labels: ['1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1'],
-        datasets: dataset,
-        name: line.name,
-      };
-    });
-    console.log(datasets);
-    // Update the chartInstances state
-    setChartInstances(datasets);
-  }, [chartData]);
-
   const formattedDate = (time) => {
     let date = new Date(time);
     return date.toLocaleDateString();
   };
+
   const getFomattedTime = (time) => {
     let date = new Date(time);
     let hr =
@@ -110,6 +82,69 @@ const MetricsScreen = () => {
         : date.getMinutes();
     let formattedTime = `${hr}` + ':' + `${min}`;
     return formattedTime;
+  };
+
+  useEffect(() => {
+    // Store the references to the created charts
+    const color = ['#00FF00', '#0000FF', '#FF0000'];
+    const datasets = chartData.map((line, j) => {
+      console.log(chartData);
+      let dataset = [];
+      // let minTime = Date.now(),
+      //   maxTime = 0;
+      for (let i = 0; i < line.graphLines.length; i++) {
+        const graphLine = line.graphLines[i];
+        dataset.push({
+          label: graphLine.name,
+          data: graphLine.values.map((entry) => {
+            // minTime = Math.min(minTime, entry.timestamp);
+            // maxTime = Math.max(maxTime, entry.timestamp);
+            return {
+              x: entry.timestamp,
+              y: entry.value,
+            };
+          }),
+          fill: j === 3 ? true : false,
+          borderColor: j == 3 ? color[i + 1] : color[i],
+          borderCapStyle: 'round',
+          tension: 0.1,
+          backgroundColor: j == 3 ? `${color[i + 1]}20` : color[i],
+          borderWidth: 2,
+          pointRadius: 0,
+        });
+      }
+      // const ar = Array(11)
+      //   .fill(0)
+      //   .map((_, i) => minTime + (i * (maxTime - minTime)) / 10);
+      // console.log(ar, getFomattedTime(minTime), getFomattedTime(maxTime));
+      // const interval = (maxTime - minTime) / 10;
+      return {
+        // labels: ar
+        //   .fill(0)
+        //   .map((_, i) => getFomattedTime(minTime + i * interval)),
+        datasets: dataset,
+        name: line.name,
+      };
+    });
+    console.log(datasets);
+    // Update the chartInstances state
+    setChartInstances(datasets);
+  }, [chartData]);
+
+  const handleChartClick = (element) => {
+    if (element.length > 0) {
+      const datasetIndex = element[0]._datasetIndex;
+      const dataIndex = element[0]._index;
+      const label = graphLines[datasetIndex].labels[dataIndex];
+
+      // Set selected range and update URL
+      setSelectedRange({ start: label, end: label });
+      updateUrl({ start: label, end: label });
+    }
+  };
+  const handleDragEnd = () => {
+    // Fetch logs for the selected time range
+    console.log('Fetching logs for time range:', selectedRange);
   };
 
   return (
@@ -158,21 +193,51 @@ const MetricsScreen = () => {
                           display: true,
                           text: chart.name,
                           position: 'top',
+                          align: 'start',
                         },
                         legend: {
                           display: true,
                           align: 'start',
                           position: 'bottom',
-                          color: '#000',
+                          backgoundColor: 'red',
                           fontWeight: 'bold',
+                          labels: {
+                            boxWidth: 15,
+                          },
                         },
                       },
 
                       scales: {
-                        yAxis: {
+                        x: {
+                          type: 'linear',
+                          position: 'bottom',
+                          ticks: {
+                            callback: (value) => getFomattedTime(value),
+                          },
+                        },
+                        y: {
+                          type: 'linear',
                           position: 'right',
                         },
                       },
+                      onClick: (event, elements,c,d) => {
+                        console.log(event, elements,c,d);
+                        const clickedDatasetIndex = elements[0].datasetIndex;
+                        const clickedPointIndex = elements[0].index;
+                        const clickedValue =
+                          chart.datasets[clickedDatasetIndex].data[
+                            clickedPointIndex
+                          ];
+
+                        // Do something with the clicked data, e.g., show a tooltip or handle the selection
+                        console.log(
+                          'Clicked dataset index:',
+                          clickedDatasetIndex
+                        );
+                        console.log('Clicked point index:', clickedPointIndex);
+                        console.log('Clicked value:', clickedValue);
+                      },
+                      onDragEnd: handleDragEnd,
                     }}
                   />
                 </div>

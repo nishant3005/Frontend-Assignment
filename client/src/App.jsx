@@ -12,6 +12,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<MetricsScreen />} />
+          <Route path="/metrics" element={<MetricsScreen />} />
           <Route path="/logs" element={<LogsScreen />} />
           <Route path="/storybook" element={<StorybookScreen />} />
         </Routes>

@@ -15,7 +15,7 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="mx-3 px-1 hover:border-b-2 border-b-[#5501E1]">
-            <Link to="/" className="flex items-center justify-between">
+            <Link to="/metrics" className="flex items-center justify-between">
               <img
                 src={Metrics}
                 alt="metrics"
